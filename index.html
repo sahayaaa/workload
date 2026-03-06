@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workload Balancer Ring 3 - Online</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚖️ Workload Balancer</h1>
+            <button id="darkModeToggle" style="width: auto; padding: 5px 15px; margin-top: 10px; font-size: 12px; background: #334155; color: white;">🌙 Mode Gelap</button>
+            <p>Manajemen Beban Kerja Ring 3</p>
+        </header>
+
+        <div class="main-layout">
+            <aside class="left-column">
+                <section class="input-section">
+                    <h3>Input Plotting Staff</h3>
+                    <form id="taskForm">
+                        <label>Asal Divisi Utama</label>
+                        <select id="divisiAsal" required>
+                            <option value="">-- Pilih Divisi --</option>
+                            <option value="Redaksi">Redaksi</option>
+                            <option value="PSDM">PSDM</option>
+                            <option value="Medkraf">Medkraf</option>
+                            <option value="Jaker">Jaker</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                        
+                        <div id="containerCatatan" style="display: none; margin-top: -10px; margin-bottom: 15px;">
+                            <label>Nama Divisi/Tim Khusus</label>
+                            <input type="text" id="catatanDivisi" placeholder="Misal: Satgas Konsumsi">
+                        </div>
+
+                        <label>Nama Staff (Ring 3)</label>
+                        <select id="namaStaff" required disabled>
+                            <option value="">-- Pilih Divisi Dulu --</option>
+                        </select>
+                        
+                        <label>Nama Event / Proker</label>
+                        <select id="namaEvent" required>
+                            <option value="">-- Pilih Proker --</option>
+                            <option value="Latdastik 1">Latdastik 1</option>
+                            <option value="Latdastik 2">Latdastik 2</option>
+                            <option value="Upgrading 1">Upgrading 1</option>
+                            <option value="Upgrading 2">Upgrading 2</option>
+                            <option value="Upgrading 3">Upgrading 3</option>
+                            <option value="HUT">HUT</option>
+                            <option value="Makrab">Makrab</option>
+                            <option value="PMC">PMC</option>
+                            <option value="Zine">Zine</option>
+                        </select>
+                        
+                        <label>Jabatan</label>
+                        <select id="jabatan" required>
+                            <option value="">-- Pilih Jabatan --</option>
+                            <optgroup label="Pimpinan">
+                                <option value="Ketua Pelaksana">Ketua Pelaksana</option>
+                            </optgroup>
+                            <optgroup label="Inti & Koor">
+                                <option value="Sekretaris">Sekretaris</option>
+                                <option value="Bendahara">Bendahara</option>
+                                <option value="Koor Acara">Koor Acara</option>
+                                <option value="Koor Humas">Koor Humas</option>
+                                <option value="Koor Logistik">Koor Logistik</option>
+                                <option value="Koor PDD">Koor PDD</option>
+                            </optgroup>
+                            <optgroup label="Staff">
+                                <option value="Staff Acara">Staff Acara</option>
+                                <option value="Staff Humas">Staff Humas</option>
+                                <option value="Staff Logistik">Staff Logistik</option>
+                                <option value="Staff PDD">Staff PDD</option>
+                            </optgroup>
+                        </select>
+                        
+                        <label>Poin Kerja (Bobot)</label>
+                        <input type="range" id="bobot" min="1" max="5" value="3">
+                        <output id="outputBobot">3 Poin</output>
+
+                        <button type="submit" id="btnTambah">Simpan</button>
+                        <button type="button" id="btnReset" class="btn-secondary">Reset Semuanya</button>
+                    </form>
+                </section>
+
+                <section class="legend-section">
+                    <h4>🚦 Status Beban</h4>
+                    <div class="status-box status-aman">🟢 AMAN (0-5)</div>
+                    <div class="status-box status-warning">🟡 WASPADA (6-10)</div>
+                    <div class="status-box status-overload">🔴 OVERLOAD (>10)</div>
+                </section>
+            </aside>
+
+            <main class="dashboard-section">
+                <div class="dashboard-header">
+                    <h3>Monitoring Real-Time</h3>
+                    <div class="controls">
+                        <input type="text" id="searchNama" placeholder="🔍 Cari Nama Staff...">
+                        <select id="filterDivisi">
+                            <option value="Semua">Semua Divisi</option>
+                            <option value="Redaksi">Redaksi</option>
+                            <option value="PSDM">PSDM</option>
+                            <option value="Medkraf">Medkraf</option>
+                            <option value="Jaker">Jaker</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff & Divisi</th>
+                                <th>List Jobdesc (Hapus 🗑️)</th>
+                                <th>Total Poin</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyTabel"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
