@@ -70,23 +70,22 @@ function renderTabel(data) {
         if (search && !nama.toLowerCase().includes(search)) continue;
         if (fDivisi !== "Semua" && d.divisiKategori !== fDivisi) continue;
 
-        // FILTER PROKER: Cek apakah staff ini punya proker yang sedang difilter
+        // PERBAIKAN FILTER PROKER: Agar "Upgrading 1" muncul
         if (fProker !== "Semua") {
             const adaDiProker = d.list.some(job => job.event === fProker);
-            if (!adaDiProker) continue; // Jika tidak ada di proker ini, sembunyikan barisnya
+            if (!adaDiProker) continue;
         }
 
         let sClass = d.total > 10 ? 'status-overload' : (d.total >= 6 ? 'status-warning' : 'status-aman');
         
         let jobItems = d.list.map(job => {
-            // Jika nama event sama dengan filter, berikan ID khusus untuk CSS
-            const isHighlight = (job.event === fProker && fProker !== "Semua");
-            const highlightStyle = isHighlight ? 'class="job-item highlighted"' : 'class="job-item"';
-            
-            return `<li ${highlightStyle}>
-                        <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
-                        <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
-                    </li>`;
+            // Tambahkan class highlight-job jika event sama dengan filter
+            const isHighlight = (job.event === fProker && fProker !== "Semua") ? 'highlight-job' : '';
+            return `
+                <li class="job-item ${isHighlight}">
+                    <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
+                    <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
+                </li>`;
         }).join('');
 
         bodyTabel.innerHTML += `
@@ -98,7 +97,6 @@ function renderTabel(data) {
             </tr>`;
     }
 }
-
 // ==========================================
 // 4. LOGIKA EVENT LISTENER
 // ==========================================
