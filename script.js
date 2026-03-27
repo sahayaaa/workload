@@ -12,11 +12,12 @@ const firebaseConfig = {
     measurementId: "G-MJRP8H70X0"
 };
 
+// Inisialisasi Firebase Compat Mode
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ==========================================
-// 2. DATABASE NAMA STAFF & SKOR
+// 2. DATABASE NAMA STAFF
 // ==========================================
 const daftarNama = {
     "Redaksi": ["Faiz", "Nada", "Dania", "Gisel", "Maharani Mantika Nailah", "Nayla Enzethiana", "Shenny Nurhidayah", "Audrina Rustari"],
@@ -27,22 +28,23 @@ const daftarNama = {
 };
 
 const poinJabatan = {
-    "Ketua Pelaksana": 5, "Wakil Ketua Pelaksana": 4, "Sekretaris": 4, "Bendahara": 4,
-    "Koor Acara": 4, "Koor Humas": 4, "Koor Logistik": 4, "Koor PDD": 4, "Koor Konsumsi": 4, "Koor Sponsorship": 4,
-    "Staff Acara": 3, "Staff Humas": 3, "Staff Logistik": 3, "Staff PDD": 3, "Staff Konsumsi": 3, "Staff Sponsorship": 3
+    "Ketua Pelaksana": 5, "Sekretaris": 4, "Bendahara": 4,
+    "Koor Acara": 4, "Koor Humas": 4, "Koor Logistik": 4, "Koor PDD": 4,
+    "Staff Acara": 3, "Staff Humas": 3, "Staff Logistik": 3, "Staff PDD": 3
 };
 
 // ==========================================
-// 3. LOGIKA MONITORING (RENDER TABEL)
+// 3. LOGIKA UTAMA
 // ==========================================
+
+// Listener Real-time
 db.ref('plotting').on('value', (snapshot) => {
     renderTabel(snapshot.val());
 });
 
 function renderTabel(data) {
     const bodyTabel = document.getElementById('bodyTabel');
-    const fDivisi = document.getElementById('filterDivisi').value;
-    const fProker = document.getElementById('filterProker').value;
+    const filter = document.getElementById('filterDivisi').value;
     const search = document.getElementById('searchNama').value.toLowerCase();
     
     bodyTabel.innerHTML = '';
@@ -51,13 +53,11 @@ function renderTabel(data) {
     const rekap = {};
     Object.keys(data).forEach(id => {
         const item = data[id];
+        if (filter !== "Semua" && item.divisiKategori !== filter) return;
+        if (search && !item.nama.toLowerCase().includes(search)) return;
+
         if (!rekap[item.nama]) {
-            rekap[item.nama] = { 
-                divisi: item.divisi, 
-                divisiKategori: item.divisiKategori,
-                total: 0, 
-                list: [] 
-            };
+            rekap[item.nama] = { divisi: item.divisi, total: 0, list: [] };
         }
         rekap[item.nama].total += item.bobot;
         rekap[item.nama].list.push({ ...item, fbId: id });
@@ -65,28 +65,14 @@ function renderTabel(data) {
 
     for (let nama in rekap) {
         const d = rekap[nama];
-        
-        // Filter Divisi & Search
-        if (search && !nama.toLowerCase().includes(search)) continue;
-        if (fDivisi !== "Semua" && d.divisiKategori !== fDivisi) continue;
-
-        // PERBAIKAN FILTER PROKER: Agar "Upgrading 1" muncul
-        if (fProker !== "Semua") {
-            const adaDiProker = d.list.some(job => job.event === fProker);
-            if (!adaDiProker) continue;
-        }
-
         let sClass = d.total > 10 ? 'status-overload' : (d.total >= 6 ? 'status-warning' : 'status-aman');
         
-        let jobItems = d.list.map(job => {
-            // Tambahkan class highlight-job jika event sama dengan filter
-            const isHighlight = (job.event === fProker && fProker !== "Semua") ? 'highlight-job' : '';
-            return `
-                <li class="job-item ${isHighlight}">
-                    <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
-                    <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
-                </li>`;
-        }).join('');
+        let jobItems = d.list.map(job => `
+            <li class="job-item">
+                <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
+                <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
+            </li>
+        `).join('');
 
         bodyTabel.innerHTML += `
             <tr>
@@ -94,14 +80,12 @@ function renderTabel(data) {
                 <td><ul>${jobItems}</ul></td>
                 <td><strong>${d.total} Poin</strong></td>
                 <td><span class="status-badge ${sClass}">${d.total > 10 ? 'Overload' : (d.total >= 6 ? 'Waspada' : 'Aman')}</span></td>
-            </tr>`;
+            </tr>
+        `;
     }
 }
-// ==========================================
-// 4. LOGIKA EVENT LISTENER
-// ==========================================
 
-// Pilih Divisi Utama -> Isi Nama Staff
+// Event: Pilih Divisi
 document.getElementById('divisiAsal').addEventListener('change', (e) => {
     const selNama = document.getElementById('namaStaff');
     selNama.innerHTML = '<option value="">-- Pilih Nama Staff --</option>';
@@ -117,7 +101,7 @@ document.getElementById('divisiAsal').addEventListener('change', (e) => {
     }
 });
 
-// Pilih Jabatan -> Auto Bobot
+// Event: Jabatan & Bobot
 document.getElementById('jabatan').addEventListener('change', (e) => {
     const p = poinJabatan[e.target.value] || 3;
     document.getElementById('bobot').value = p;
@@ -128,7 +112,7 @@ document.getElementById('bobot').addEventListener('input', (e) => {
     document.getElementById('outputBobot').innerText = e.target.value + " Poin";
 });
 
-// Simpan Data ke Firebase
+// Simpan Data
 document.getElementById('taskForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const div = document.getElementById('divisiAsal').value;
@@ -140,7 +124,7 @@ document.getElementById('taskForm').addEventListener('submit', (e) => {
         job: document.getElementById('jabatan').value,
         bobot: parseInt(document.getElementById('bobot').value)
     };
-    db.ref('plotting').push(dataBaru);
+    db.ref('plotting').push(dataBaru Baru);
     e.target.reset();
     document.getElementById('namaStaff').disabled = true;
     document.getElementById('outputBobot').innerText = "3 Poin";
@@ -148,22 +132,17 @@ document.getElementById('taskForm').addEventListener('submit', (e) => {
 
 // Hapus & Reset
 window.hapusSatu = (id) => { if(confirm("Hapus item ini?")) db.ref('plotting/' + id).remove(); };
-document.getElementById('btnReset').addEventListener('click', () => {
-    if(confirm("Hapus SEMUA data?")) db.ref('plotting').remove();
-});
+document.getElementById('btnReset').addEventListener('click', () => { if(confirm("Hapus SEMUA data?")) db.ref('plotting').remove(); });
 
-// Filter & Search
+// Cari & Filter
 document.getElementById('searchNama').addEventListener('input', () => {
     db.ref('plotting').once('value', s => renderTabel(s.val()));
 });
 document.getElementById('filterDivisi').addEventListener('change', () => {
     db.ref('plotting').once('value', s => renderTabel(s.val()));
 });
-document.getElementById('filterProker').addEventListener('change', () => {
-    db.ref('plotting').once('value', s => renderTabel(s.val()));
-});
 
-// Dark Mode
+// Logika Dark Mode
 const btnDark = document.getElementById('darkModeToggle');
 btnDark.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
