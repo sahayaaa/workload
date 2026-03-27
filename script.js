@@ -56,32 +56,34 @@ function renderTabel(data) {
                 divisi: item.divisi, 
                 divisiKategori: item.divisiKategori,
                 total: 0, 
-                list: [],
-                terlibatProker: false 
+                list: [] 
             };
         }
         rekap[item.nama].total += item.bobot;
         rekap[item.nama].list.push({ ...item, fbId: id });
-        
-        if (fProker === "Semua" || item.event === fProker) {
-            rekap[item.nama].terlibatProker = true;
-        }
     });
 
     for (let nama in rekap) {
         const d = rekap[nama];
         
-        // Filter Ganda
+        // Filter Divisi & Search
         if (search && !nama.toLowerCase().includes(search)) continue;
         if (fDivisi !== "Semua" && d.divisiKategori !== fDivisi) continue;
-        if (!d.terlibatProker) continue;
+
+        // FILTER PROKER: Cek apakah staff ini punya proker yang sedang difilter
+        if (fProker !== "Semua") {
+            const adaDiProker = d.list.some(job => job.event === fProker);
+            if (!adaDiProker) continue; // Jika tidak ada di proker ini, sembunyikan barisnya
+        }
 
         let sClass = d.total > 10 ? 'status-overload' : (d.total >= 6 ? 'status-warning' : 'status-aman');
         
         let jobItems = d.list.map(job => {
+            // Jika nama event sama dengan filter, berikan ID khusus untuk CSS
             const isHighlight = (job.event === fProker && fProker !== "Semua");
-            const style = isHighlight ? 'style="background: #dbeafe; border-left: 5px solid #2563eb;"' : '';
-            return `<li class="job-item" ${style}>
+            const highlightStyle = isHighlight ? 'class="job-item highlighted"' : 'class="job-item"';
+            
+            return `<li ${highlightStyle}>
                         <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
                         <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
                     </li>`;
