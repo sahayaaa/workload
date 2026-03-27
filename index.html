@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Niskala Workload Balancer</title>
+    <title>Workload Balancer Ring 3 - Online</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -12,8 +12,8 @@
     <div class="container">
         <header>
             <h1>⚖️ Workload Balancer</h1>
-            <button id="darkModeToggle">🌙 Mode Gelap</button>
-            <p>Manajemen Beban Kerja Ring 3 - Kabinet Niskala Bhrata</p>
+            <button id="darkModeToggle" style="width: auto; padding: 5px 15px; margin-top: 10px; font-size: 12px; background: #334155; color: white;">🌙 Mode Gelap</button>
+            <p>Manajemen Beban Kerja Ring 3</p>
         </header>
 
         <div class="main-layout">
@@ -46,16 +46,13 @@
                             <option value="">-- Pilih Proker --</option>
                             <option value="Latdastik 1">Latdastik 1</option>
                             <option value="Latdastik 2">Latdastik 2</option>
-                            <option value="Upgrading 1">Upgrading Pembuatan Outline Berita</option>
-                            <option value="Upgrading 2">Makrab dan HUT</option>
-                            <option value="Upgrading 3">Upgrading Fotografi Jurnalistik</option>
-                            <option value="PJM">PJM ZINE</option>
+                            <option value="Upgrading 1">Upgrading 1</option>
+                            <option value="Upgrading 2">Upgrading 2</option>
+                            <option value="Upgrading 3">Upgrading 3</option>
+                            <option value="HUT">HUT</option>
+                            <option value="Makrab">Makrab</option>
                             <option value="PMC">PMC</option>
-                            <option value="Bincang">Bincang Redaksi</option>
-                            <option value="Apreasiasi">Apresiasi Redaksi</option>
-                            <option value="Anjangsana 1">Anjangsana 1</option>
-                            <option value="Anjangsana 2">Anjangsana 2</option>
-                            <option value="Kunjungan">Kunjungan Edukasi</option>
+                            <option value="Zine">Zine</option>
                         </select>
                         
                         <label>Jabatan</label>
@@ -63,7 +60,6 @@
                             <option value="">-- Pilih Jabatan --</option>
                             <optgroup label="Pimpinan">
                                 <option value="Ketua Pelaksana">Ketua Pelaksana</option>
-                                <option value="Wakil Ketua Pelaksana">Wakil Ketua Pelaksana</option>
                             </optgroup>
                             <optgroup label="Inti & Koor">
                                 <option value="Sekretaris">Sekretaris</option>
@@ -71,16 +67,12 @@
                                 <option value="Koor Acara">Koor Acara</option>
                                 <option value="Koor Humas">Koor Humas</option>
                                 <option value="Koor Logistik">Koor Logistik</option>
-                                <option value="Koor Sponsorship">Koor Sponsorship</option>
-                                <option value="Koor Konsumsi">Koor Konsumsi</option>
                                 <option value="Koor PDD">Koor PDD</option>
                             </optgroup>
                             <optgroup label="Staff">
                                 <option value="Staff Acara">Staff Acara</option>
                                 <option value="Staff Humas">Staff Humas</option>
                                 <option value="Staff Logistik">Staff Logistik</option>
-                                <option value="Staff Konsumsi">Staff Konsumsi</option>
-                                <option value="Staff Sponshorship">Staff Sponsorship</option>
                                 <option value="Staff PDD">Staff PDD</option>
                             </optgroup>
                         </select>
@@ -89,7 +81,7 @@
                         <input type="range" id="bobot" min="1" max="5" value="3">
                         <output id="outputBobot">3 Poin</output>
 
-                        <button type="submit" id="btnTambah">Simpan Data</button>
+                        <button type="submit" id="btnTambah">Simpan</button>
                         <button type="button" id="btnReset" class="btn-secondary">Reset Semuanya</button>
                     </form>
                 </section>
@@ -105,31 +97,14 @@
             <main class="dashboard-section">
                 <div class="dashboard-header">
                     <h3>Monitoring Real-Time</h3>
-                    <div class="controls" style="display: flex; flex-wrap: wrap; gap: 10px;">
-                        <input type="text" id="searchNama" placeholder="🔍 Cari Nama Staff..." style="flex: 1; min-width: 150px;">
-                        
-                        <select id="filterDivisi" style="flex: 1; min-width: 130px;">
+                    <div class="controls">
+                        <input type="text" id="searchNama" placeholder="🔍 Cari Nama Staff...">
+                        <select id="filterDivisi">
                             <option value="Semua">Semua Divisi</option>
                             <option value="Redaksi">Redaksi</option>
                             <option value="PSDM">PSDM</option>
                             <option value="Medkraf">Medkraf</option>
                             <option value="Jaker">Jaker</option>
-                        </select>
-
-                        <select id="filterProker" style="flex: 1; min-width: 130px;">
-                            <option value="Semua">Semua Proker</option>
-                            <option value="Latdastik 1">Latdastik 1</option>
-                            <option value="Latdastik 2">Latdastik 2</option>
-                            <option value="Upgrading Pembuatan Outline Berita">Upgrading 1</option>
-                            <option value="Makrab dan HUT">Upgrading 2</option>
-                            <option value="Upgrading Fotografi Jurnalistik">Upgrading 3</option>
-                            <option value="PJM ZINE">PJM ZINE</option>
-                            <option value="PMC">PMC</option>
-                            <option value="Bincang Redaksi">Bincang Redaksi</option>
-                            <option value="Apresiasi Redaksi">Apresiasi Redaksi</option>
-                            <option value="Anjangsana 1">Anjangsana 1</option>
-                            <option value="Anjangsana 2">Anjangsana 2</option>
-                            <option value="Kunjungan Edukasi">Kunjungan Edukasi</option>
                         </select>
                     </div>
                 </div>
