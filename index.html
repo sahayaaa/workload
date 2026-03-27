@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Workload Balancer Ring 3 - Online</title>
+    <title>Niskala Workload Balancer</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -11,9 +11,9 @@
 <body>
     <div class="container">
         <header>
-            <h1>DALAM PERBAIKAN</h1>
-            <button id="darkModeToggle" style="width: auto; padding: 5px 15px; margin-top: 10px; font-size: 12px; background: #334155; color: white;">🌙 Mode Gelap</button>
-            <p>Manajemen Beban Kerja Ring 3</p>
+            <h1>⚖️ Workload Balancer</h1>
+            <button id="darkModeToggle">🌙 Mode Gelap</button>
+            <p>Manajemen Beban Kerja Ring 3 - Kabinet Niskala Bhrata</p>
         </header>
 
         <div class="main-layout">
@@ -49,8 +49,10 @@
                             <option value="Upgrading 1">Upgrading 1</option>
                             <option value="Upgrading 2">Upgrading 2</option>
                             <option value="Upgrading 3">Upgrading 3</option>
-                            <option value="HUT">HUT</option>
-                            <option value="Makrab">Makrab</option>
+                            <option value="HUT dan Makrab">HUT dan Makrab</option>
+                            <option value="Anjangsana 1">Anjangsana 1</option>
+                            <option value="Anjangsana 2">Anjangsana 2</option>
+                            <option value="Kunjungan Edukasi">Kunjungan Edukasi</option>
                             <option value="PMC">PMC</option>
                             <option value="Zine">Zine</option>
                         </select>
@@ -60,6 +62,7 @@
                             <option value="">-- Pilih Jabatan --</option>
                             <optgroup label="Pimpinan">
                                 <option value="Ketua Pelaksana">Ketua Pelaksana</option>
+                                <option value="Wakil Ketua Pelaksana">Wakil Ketua Pelaksana</option>
                             </optgroup>
                             <optgroup label="Inti & Koor">
                                 <option value="Sekretaris">Sekretaris</option>
@@ -67,12 +70,16 @@
                                 <option value="Koor Acara">Koor Acara</option>
                                 <option value="Koor Humas">Koor Humas</option>
                                 <option value="Koor Logistik">Koor Logistik</option>
+                                <option value="Koor Konsumsi">Koor Konsumsi</option>
+                                <option value="Koor Sponsorship">Koor Sponsorship</option>
                                 <option value="Koor PDD">Koor PDD</option>
                             </optgroup>
                             <optgroup label="Staff">
                                 <option value="Staff Acara">Staff Acara</option>
                                 <option value="Staff Humas">Staff Humas</option>
                                 <option value="Staff Logistik">Staff Logistik</option>
+                                <option value="Staff Konsumsi">Staff Konsumsi</option>
+                                <option value="Staff Sponsorship">Staff Sponsorship</option>
                                 <option value="Staff PDD">Staff PDD</option>
                             </optgroup>
                         </select>
@@ -81,16 +88,31 @@
                         <input type="range" id="bobot" min="1" max="5" value="3">
                         <output id="outputBobot">3 Poin</output>
 
-                        <button type="submit" id="btnTambah">Simpan</button>
-                        <button type="button" id="btnReset" class="btn-secondary">Reset Semuanya</button>
+                        <button type="submit" id="btnTambah">Simpan Plotting</button>
+                        <button type="button" id="btnReset" class="btn-secondary">Reset Database</button>
                     </form>
                 </section>
 
                 <section class="legend-section">
-                    <h4>🚦 Status Beban</h4>
+                    <h4>🚦 Status Beban Kerja</h4>
                     <div class="status-box status-aman">🟢 AMAN (0-5)</div>
                     <div class="status-box status-warning">🟡 WASPADA (6-10)</div>
                     <div class="status-box status-overload">🔴 OVERLOAD (>10)</div>
+
+                    <div class="summary-container" style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <div class="status-card" style="border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center;">
+                            <small style="font-size: 9px; font-weight: bold; color: #ef4444;">OVERLOAD</small>
+                            <div id="countOverload" style="font-size: 20px; font-weight: 800; color: #ef4444;">0</div>
+                        </div>
+                        <div class="status-card" style="border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center;">
+                            <small style="font-size: 9px; font-weight: bold; color: #f59e0b;">WASPADA</small>
+                            <div id="countWaspada" style="font-size: 20px; font-weight: 800; color: #f59e0b;">0</div>
+                        </div>
+                        <div class="status-card" style="border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center;">
+                            <small style="font-size: 9px; font-weight: bold; color: #10b981;">AMAN</small>
+                            <div id="countAman" style="font-size: 20px; font-weight: 800; color: #10b981;">0</div>
+                        </div>
+                    </div>
                 </section>
             </aside>
 
@@ -99,6 +121,7 @@
                     <h3>Monitoring Real-Time</h3>
                     <div class="controls">
                         <input type="text" id="searchNama" placeholder="🔍 Cari Nama Staff...">
+                        
                         <select id="filterDivisi">
                             <option value="Semua">Semua Divisi</option>
                             <option value="Redaksi">Redaksi</option>
@@ -106,6 +129,27 @@
                             <option value="Medkraf">Medkraf</option>
                             <option value="Jaker">Jaker</option>
                         </select>
+
+                        <select id="filterProker">
+                            <option value="Semua">Semua Proker</option>
+                            <option value="Latdastik 1">Latdastik 1</option>
+                            <option value="Latdastik 2">Latdastik 2</option>
+                            <option value="Upgrading 1">Upgrading 1</option>
+                            <option value="Upgrading 2">Upgrading 2</option>
+                            <option value="Upgrading 3">Upgrading 3</option>
+                            <option value="HUT dan Makrab">HUT dan Makrab</option>
+                            <option value="Anjangsana 1">Anjangsana 1</option>
+                            <option value="Anjangsana 2">Anjangsana 2</option>
+                            <option value="Kunjungan Edukasi">Kunjungan Edukasi</option>
+                            <option value="PMC">PMC</option>
+                            <option value="Zine">Zine</option>
+                        </select>
+
+                        <select id="sortStatus">
+                            <option value="Default">Urutkan: Default</option>
+                            <option value="BebanTinggi">Status: Terberat</option>
+                            <option value="BebanRendah">Status: Teringan</option>
+                         </select>
                     </div>
                 </div>
                 
@@ -125,6 +169,7 @@
             </main>
         </div>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
