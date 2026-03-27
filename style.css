@@ -1,4 +1,6 @@
-/* Variabel Warna Dasar */
+/* ==========================================
+   1. SISTEM WARNA & VARIABEL
+   ========================================== */
 :root {
     --bg-body: #f0f4f8;
     --bg-card: white;
@@ -6,6 +8,10 @@
     --text-header: #1e293b;
     --border-color: #e2e8f0;
     --bg-input: white;
+    
+    /* Warna Highlight (Mode Terang) */
+    --bg-highlight: #dbeafe; 
+    --text-highlight: #1e3a8a; 
 }
 
 /* Variabel Warna Dark Mode */
@@ -16,11 +22,30 @@
     --text-header: #f8fafc;
     --border-color: #334155;
     --bg-input: #1e293b;
+
+    /* Warna Highlight (Mode Gelap) */
+    --bg-highlight: #1e3a8a; 
+    --text-highlight: #f8fafc;
 }
 
+/* ==========================================
+   2. RESET & BASE STYLES
+   ========================================== */
 * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s, color 0.3s; }
-body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 10px; overflow-x: hidden; }
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: var(--bg-body); 
+    color: var(--text-main); 
+    padding: 10px; 
+    overflow-x: hidden; 
+}
+
 .container { max-width: 1200px; margin: 0 auto; width: 100%; }
+
+/* ==========================================
+   3. COMPONENTS
+   ========================================== */
 
 /* HEADER */
 header { text-align: center; margin-bottom: 20px; padding: 10px; width: 100%; }
@@ -31,44 +56,162 @@ header p { color: #64748b; font-size: 12px; margin-top: 5px; }
 .main-layout { display: flex; flex-direction: column; gap: 15px; width: 100%; }
 
 /* PANEL SECTIONS */
-section, main { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; }
+section, main { 
+    background: var(--bg-card); 
+    padding: 15px; 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color); 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+    width: 100%; 
+}
 
 /* FORM ELEMENTS */
-label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 5px; color: #475569; }
-input, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--bg-input); color: var(--text-main); outline: none; }
+label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 5px; color: #64748b; }
+input, select { 
+    width: 100%; 
+    padding: 10px; 
+    margin-bottom: 12px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    font-size: 14px; 
+    background: var(--bg-input); 
+    color: var(--text-main); 
+    outline: none; 
+}
 output { display: block; font-size: 0.7rem; color: #2563eb; margin-bottom: 10px; font-weight: bold; }
 
 /* BUTTONS */
 button { cursor: pointer; border-radius: 8px; font-weight: bold; border: none; width: 100%; padding: 12px; transition: 0.2s; font-size: 14px; }
 #btnTambah { background: #2563eb; color: white; margin-bottom: 8px; }
+#btnTambah:hover { background: #1d4ed8; }
 .btn-secondary { background: #fee2e2; color: #b91c1c; font-size: 0.7rem; padding: 8px; }
-#darkModeToggle { width: auto; padding: 8px 15px; margin: 10px auto; display: block; font-size: 12px; }
+.btn-secondary:hover { background: #fecaca; }
 
-/* TABEL: SCROLLABLE DI HP */
-.table-container { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); }
+/* TABEL & DASHBOARD */
+.dashboard-header { margin-bottom: 15px; }
+.controls { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+.table-container { 
+    width: 100%; 
+    overflow-x: auto; 
+    border-radius: 8px; 
+    border: 1px solid var(--border-color); 
+    background: var(--bg-card); 
+}
+
 table { width: 100%; border-collapse: collapse; min-width: 550px; }
 th { text-align: left; padding: 10px; background: var(--bg-body); font-size: 10px; color: #64748b; text-transform: uppercase; }
-td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--text-main); }
+td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--text-main); vertical-align: top; }
+
+/* JOB ITEMS & HIGHLIGHT LOGIC */
+ul { list-style: none; }
+
+.job-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: var(--bg-body); 
+    padding: 6px 10px; 
+    border-radius: 6px; 
+    margin-bottom: 4px; 
+    border: 1px solid var(--border-color); 
+    font-size: 11px; 
+    color: var(--text-main);
+}
+
+/* Class ini akan dipicu oleh JavaScript saat filter proker aktif */
+.job-item.highlight-on {
+    background-color: var(--bg-highlight) !important;
+    color: var(--text-highlight) !important;
+    border-left: 4px solid #2563eb;
+    font-weight: 600;
+}
+
+.btn-del { background: none; color: #ef4444; width: auto; padding: 0 4px; font-size: 14px; }
+.btn-del:hover { transform: scale(1.2); }
 
 /* STATUS BOX & BADGE */
 .status-box { font-size: 11px; padding: 6px; border-radius: 6px; margin-top: 5px; text-align: center; font-weight: bold; }
 .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+
 .status-aman { background: #dcfce7; color: #166534; border: 1px solid #bcf0cc; }
 .status-warning { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
 .status-overload { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
-/* JOB ITEMS (DIPERBAIKI) */
-.job-item { 
-    display: flex; justify-content: space-between; align-items: center; background: var(--bg-body); 
-    padding: 4px 8px; border-radius: 4px; margin-bottom: 3px; border-left: 3px solid #3b82f6; 
-    font-size: 11px; border: 1px solid var(--border-color); 
-    color: var(--text-main); /* BARIS INI YG MEMBUAT TEKS JADI PUTIH SAAT DARK MODE */
-}
-.btn-del { background: none; color: #ef4444; width: auto; padding: 0 4px; font-size: 14px; }
-
-/* RESPONSIVE: TAMPILAN LAPTOP */
+/* ==========================================
+   4. RESPONSIVE (LAPTOP/DESKTOP)
+   ========================================== */
 @media (min-width: 1024px) {
-    .main-layout { display: grid; grid-template-columns: 320px 1fr; align-items: start; gap: 20px; }
+    .main-layout { 
+        display: grid; 
+        grid-template-columns: 320px 1fr; 
+        align-items: start; 
+        gap: 20px; 
+    }
     header h1 { font-size: 28px; }
-    .controls { display: flex; gap: 10px; }
+    .controls { display: flex; flex-direction: row; gap: 10px; }
+    .controls input, .controls select { margin-bottom: 0; width: auto; min-width: 180px; }
+}
+
+/* ==========================================
+   5. SUMMARY CARDS (FITUR BARU)
+   ========================================== */
+.summary-container {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.status-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 12px 5px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-2px);
+}
+
+.status-card small {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.status-card div {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+/* Warna Spesifik untuk Angka & Label */
+/* Overload */
+.status-card:nth-child(1) small, 
+#countOverload { 
+    color: #ef4444; 
+}
+
+/* Waspada */
+.status-card:nth-child(2) small, 
+#countWaspada { 
+    color: #f59e0b; 
+}
+
+/* Aman */
+.status-card:nth-child(3) small, 
+#countAman { 
+    color: #10b981; 
+}
+
+/* Penyesuaian Dark Mode Khusus Box Ringkasan */
+.dark-mode .status-card {
+    background: rgba(30, 41, 59, 0.5); /* Semi transparan agar lebih blend */
 }
