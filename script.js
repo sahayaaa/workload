@@ -12,12 +12,11 @@ const firebaseConfig = {
     measurementId: "G-MJRP8H70X0"
 };
 
-// Inisialisasi Firebase Compat Mode (Agar Sinkron dengan HTML)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ==========================================
-// 2. DATABASE NAMA STAFF
+// 2. DATABASE NAMA STAFF & SKOR
 // ==========================================
 const daftarNama = {
     "Redaksi": ["Faiz", "Nada", "Dania", "Gisel", "Maharani Mantika Nailah", "Nayla Enzethiana", "Shenny Nurhidayah", "Audrina Rustari"],
@@ -34,17 +33,16 @@ const poinJabatan = {
 };
 
 // ==========================================
-// 3. LOGIKA UTAMA
+// 3. LOGIKA MONITORING (RENDER TABEL)
 // ==========================================
-
-// Listener Real-time
 db.ref('plotting').on('value', (snapshot) => {
     renderTabel(snapshot.val());
 });
 
 function renderTabel(data) {
     const bodyTabel = document.getElementById('bodyTabel');
-    const filter = document.getElementById('filterDivisi').value;
+    const fDivisi = document.getElementById('filterDivisi').value;
+    const fProker = document.getElementById('filterProker').value;
     const search = document.getElementById('searchNama').value.toLowerCase();
     
     bodyTabel.innerHTML = '';
@@ -53,26 +51,41 @@ function renderTabel(data) {
     const rekap = {};
     Object.keys(data).forEach(id => {
         const item = data[id];
-        if (filter !== "Semua" && item.divisiKategori !== filter) return;
-        if (search && !item.nama.toLowerCase().includes(search)) return;
-
         if (!rekap[item.nama]) {
-            rekap[item.nama] = { divisi: item.divisi, total: 0, list: [] };
+            rekap[item.nama] = { 
+                divisi: item.divisi, 
+                divisiKategori: item.divisiKategori,
+                total: 0, 
+                list: [],
+                terlibatProker: false 
+            };
         }
         rekap[item.nama].total += item.bobot;
         rekap[item.nama].list.push({ ...item, fbId: id });
+        
+        if (fProker === "Semua" || item.event === fProker) {
+            rekap[item.nama].terlibatProker = true;
+        }
     });
 
     for (let nama in rekap) {
         const d = rekap[nama];
+        
+        // Filter Ganda
+        if (search && !nama.toLowerCase().includes(search)) continue;
+        if (fDivisi !== "Semua" && d.divisiKategori !== fDivisi) continue;
+        if (!d.terlibatProker) continue;
+
         let sClass = d.total > 10 ? 'status-overload' : (d.total >= 6 ? 'status-warning' : 'status-aman');
         
-        let jobItems = d.list.map(job => `
-            <li class="job-item">
-                <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
-                <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
-            </li>
-        `).join('');
+        let jobItems = d.list.map(job => {
+            const isHighlight = (job.event === fProker && fProker !== "Semua");
+            const style = isHighlight ? 'style="background: #dbeafe; border-left: 5px solid #2563eb;"' : '';
+            return `<li class="job-item" ${style}>
+                        <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
+                        <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
+                    </li>`;
+        }).join('');
 
         bodyTabel.innerHTML += `
             <tr>
@@ -80,12 +93,15 @@ function renderTabel(data) {
                 <td><ul>${jobItems}</ul></td>
                 <td><strong>${d.total} Poin</strong></td>
                 <td><span class="status-badge ${sClass}">${d.total > 10 ? 'Overload' : (d.total >= 6 ? 'Waspada' : 'Aman')}</span></td>
-            </tr>
-        `;
+            </tr>`;
     }
 }
 
-// Event: Pilih Divisi (Memperbaiki Nama Staff)
+// ==========================================
+// 4. LOGIKA EVENT LISTENER
+// ==========================================
+
+// Pilih Divisi Utama -> Isi Nama Staff
 document.getElementById('divisiAsal').addEventListener('change', (e) => {
     const selNama = document.getElementById('namaStaff');
     selNama.innerHTML = '<option value="">-- Pilih Nama Staff --</option>';
@@ -101,7 +117,7 @@ document.getElementById('divisiAsal').addEventListener('change', (e) => {
     }
 });
 
-// Event: Jabatan & Bobot
+// Pilih Jabatan -> Auto Bobot
 document.getElementById('jabatan').addEventListener('change', (e) => {
     const p = poinJabatan[e.target.value] || 3;
     document.getElementById('bobot').value = p;
@@ -112,7 +128,7 @@ document.getElementById('bobot').addEventListener('input', (e) => {
     document.getElementById('outputBobot').innerText = e.target.value + " Poin";
 });
 
-// Simpan Data
+// Simpan Data ke Firebase
 document.getElementById('taskForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const div = document.getElementById('divisiAsal').value;
@@ -136,17 +152,18 @@ document.getElementById('btnReset').addEventListener('click', () => {
     if(confirm("Hapus SEMUA data?")) db.ref('plotting').remove();
 });
 
-// Cari & Filter
+// Filter & Search
 document.getElementById('searchNama').addEventListener('input', () => {
     db.ref('plotting').once('value', s => renderTabel(s.val()));
 });
 document.getElementById('filterDivisi').addEventListener('change', () => {
     db.ref('plotting').once('value', s => renderTabel(s.val()));
 });
+document.getElementById('filterProker').addEventListener('change', () => {
+    db.ref('plotting').once('value', s => renderTabel(s.val()));
+});
 
-// ==========================================
-// 4. LOGIKA DARK MODE
-// ==========================================
+// Dark Mode
 const btnDark = document.getElementById('darkModeToggle');
 btnDark.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
