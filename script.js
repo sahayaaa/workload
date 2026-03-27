@@ -29,8 +29,8 @@ const daftarNama = {
 
 const poinJabatan = {
     "Ketua Pelaksana": 5, "Wakil Ketua Pelaksana": 4, "Sekretaris": 4, "Bendahara": 4,
-    "Koor Acara": 4, "Koor Humas": 4, "Koor Logistik": 4, "Koor PDD": 4,
-    "Staff Acara": 3, "Staff Humas": 3, "Staff Logistik": 3, "Staff PDD": 3
+    "Koor Acara": 4, "Koor Humas": 4, "Koor Logistik": 4, "Koor PDD": 4, "Koor Konsumsi": 4, "Koor Sponsorship": 4,
+    "Staff Acara": 3, "Staff Humas": 3, "Staff Logistik": 3, "Staff PDD": 3, "Staff Konsumsi": 3, "Staff Sponsorship": 3
 };
 
 // ==========================================
