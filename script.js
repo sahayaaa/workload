@@ -1,5 +1,5 @@
 // ==========================================
-// 1. KONFIGURASI FIREBASE
+// 1. KONFIGURASI FIREBASE & PUSAT KENDALI
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyAZPm1-6HrFLlEh1ODxSmt5FzJRkgQFDag",
@@ -14,6 +14,10 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// PUSAT KENDALI BATAS POIN
+const LIMIT_OVERLOAD = 13; // > 13 masuk Overload (Mulai dari 14)
+const LIMIT_WASPADA = 8;   // 8 sampai 13 masuk Waspada, di bawah 8 masuk Aman
 
 // ==========================================
 // 2. DATABASE NAMA STAFF & POIN
@@ -76,10 +80,10 @@ function renderTabel(data) {
 
     let rekapArray = Object.values(rekapObj);
 
-    // Hitung Statistik Berdasarkan Data yang sudah di-filter (kecuali filter proker agar angka tetap sinkron)
+    // Hitung Statistik Berdasarkan Data yang sudah di-filter (menggunakan variabel pusat kendali)
     rekapArray.forEach(staff => {
-        if (staff.total > 10) countOverload++;
-        else if (staff.total >= 6) countWaspada++;
+        if (staff.total > LIMIT_OVERLOAD) countOverload++;
+        else if (staff.total >= LIMIT_WASPADA) countWaspada++;
         else countAman++;
     });
     updateStats(countOverload, countWaspada, countAman);
@@ -93,7 +97,9 @@ function renderTabel(data) {
         const isInvolvedInProker = fProker === "Semua" || d.list.some(j => j.event === fProker);
 
         if (isInvolvedInProker) {
-            let sClass = d.total > 10 ? 'status-overload' : (d.total >= 6 ? 'status-warning' : 'status-aman');
+            // Tentukan Class dan Teks Status berdasarkan variabel pusat kendali
+            let sClass = d.total > LIMIT_OVERLOAD ? 'status-overload' : (d.total >= LIMIT_WASPADA ? 'status-warning' : 'status-aman');
+            let sText = d.total > LIMIT_OVERLOAD ? 'Overload' : (d.total >= LIMIT_WASPADA ? 'Waspada' : 'Aman');
             
             let jobItems = d.list.map(job => {
                 const isFiltered = (fProker !== "Semua" && job.event === fProker);
@@ -114,7 +120,7 @@ function renderTabel(data) {
                     <td><strong>${d.nama}</strong><br><small>${d.divisi}</small></td>
                     <td><ul>${jobItems}</ul></td>
                     <td><strong>${d.total} Poin</strong></td>
-                    <td><span class="status-badge ${sClass}">${d.total > 10 ? 'Overload' : (d.total >= 6 ? 'Waspada' : 'Aman')}</span></td>
+                    <td><span class="status-badge ${sClass}">${sText}</span></td>
                 </tr>
             `;
         }
