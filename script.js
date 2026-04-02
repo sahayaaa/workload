@@ -16,8 +16,8 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // PUSAT KENDALI BATAS POIN
-const LIMIT_OVERLOAD = 13; // > 13 masuk Overload (Mulai dari 14)
-const LIMIT_WASPADA = 8;   // 8 sampai 13 masuk Waspada, di bawah 8 masuk Aman
+const LIMIT_OVERLOAD = 18; // > 13 masuk Overload (Mulai dari 14)
+const LIMIT_WASPADA = 12;   // 8 sampai 13 masuk Waspada, di bawah 8 masuk Aman
 
 // ==========================================
 // 2. DATABASE NAMA STAFF & POIN
