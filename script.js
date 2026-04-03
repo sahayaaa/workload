@@ -15,9 +15,37 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// --- LOGIKA SAKLAR (PROTEKSI) ---, True: terkunci, False: terbuka
+let isLocked = true;
+
+// Monitor status kunci dari Firebase secara Real-time
+db.ref('app_settings/is_locked').on('value', (snapshot) => {
+    isLocked = snapshot.val() || false;
+    const btnSimpan = document.querySelector('#taskForm button[type="submit"]');
+    const btnReset = document.getElementById('btnReset');
+
+    if (isLocked) {
+        if(btnSimpan) {
+            btnSimpan.disabled = true;
+            btnSimpan.innerHTML = "🔒 Database Terkunci";
+            btnSimpan.style.opacity = "0.6";
+            btnSimpan.style.cursor = "not-allowed";
+        }
+        if(btnReset) btnReset.style.display = "none";
+    } else {
+        if(btnSimpan) {
+            btnSimpan.disabled = false;
+            btnSimpan.innerHTML = "Simpan Plotting";
+            btnSimpan.style.opacity = "1";
+            btnSimpan.style.cursor = "pointer";
+        }
+        if(btnReset) btnReset.style.display = "block";
+    }
+});
+
 // PUSAT KENDALI BATAS POIN
-const LIMIT_OVERLOAD = 18; // > 13 masuk Overload (Mulai dari 14)
-const LIMIT_WASPADA = 12;   // 8 sampai 13 masuk Waspada, di bawah 8 masuk Aman
+const LIMIT_OVERLOAD = 18; 
+const LIMIT_WASPADA = 12;  
 
 // ==========================================
 // 2. DATABASE NAMA STAFF & POIN
@@ -40,7 +68,6 @@ const poinJabatan = {
 // 3. LOGIKA UTAMA (RENDER & STATISTIK)
 // ==========================================
 
-// Listener Real-time
 db.ref('plotting').on('value', (snapshot) => {
     renderTabel(snapshot.val());
 });
@@ -52,22 +79,19 @@ function renderTabel(data) {
     const sStatus = document.getElementById('sortStatus').value;
     const search = document.getElementById('searchNama').value.toLowerCase();
     
-    // Inisialisasi Counter untuk Statistik
     let countOverload = 0;
     let countWaspada = 0;
     let countAman = 0;
 
     bodyTabel.innerHTML = '';
     if (!data) {
-        updateStats(0, 0, 0); // Reset statistik jika data kosong
+        updateStats(0, 0, 0);
         return;
     }
 
     const rekapObj = {};
     Object.keys(data).forEach(id => {
         const item = data[id];
-        
-        // Filter Dasar (Divisi & Search Nama)
         if (fDivisi !== "Semua" && item.divisiKategori !== fDivisi) return;
         if (search && !item.nama.toLowerCase().includes(search)) return;
 
@@ -80,7 +104,6 @@ function renderTabel(data) {
 
     let rekapArray = Object.values(rekapObj);
 
-    // Hitung Statistik Berdasarkan Data yang sudah di-filter (menggunakan variabel pusat kendali)
     rekapArray.forEach(staff => {
         if (staff.total > LIMIT_OVERLOAD) countOverload++;
         else if (staff.total >= LIMIT_WASPADA) countWaspada++;
@@ -88,29 +111,27 @@ function renderTabel(data) {
     });
     updateStats(countOverload, countWaspada, countAman);
 
-    // Sortir
     if (sStatus === "BebanTinggi") rekapArray.sort((a, b) => b.total - a.total);
     else if (sStatus === "BebanRendah") rekapArray.sort((a, b) => a.total - b.total);
 
-    // Render Baris Tabel
     rekapArray.forEach(d => {
         const isInvolvedInProker = fProker === "Semua" || d.list.some(j => j.event === fProker);
 
         if (isInvolvedInProker) {
-            // Tentukan Class dan Teks Status berdasarkan variabel pusat kendali
             let sClass = d.total > LIMIT_OVERLOAD ? 'status-overload' : (d.total >= LIMIT_WASPADA ? 'status-warning' : 'status-aman');
             let sText = d.total > LIMIT_OVERLOAD ? 'Overload' : (d.total >= LIMIT_WASPADA ? 'Waspada' : 'Aman');
             
             let jobItems = d.list.map(job => {
                 const isFiltered = (fProker !== "Semua" && job.event === fProker);
-                const highlightStyle = isFiltered 
-                    ? 'style="background: var(--bg-highlight); color: var(--text-highlight); border-left: 4px solid #2563eb;"' 
-                    : '';
+                const highlightStyle = isFiltered ? 'style="background: var(--bg-highlight); color: var(--text-highlight); border-left: 4px solid #2563eb;"' : '';
                 
+                // Tombol hapus akan disembunyikan/dimatikan jika isLocked true
+                const delBtnStyle = isLocked ? 'style="display:none"' : '';
+
                 return `
                     <li class="job-item" ${highlightStyle}>
                         <span>${job.event} - <strong>${job.job}</strong> (${job.bobot})</span>
-                        <button class="btn-del" onclick="hapusSatu('${job.fbId}')">🗑️</button>
+                        <button class="btn-del" ${delBtnStyle} onclick="hapusSatu('${job.fbId}')">🗑️</button>
                     </li>
                 `;
             }).join('');
@@ -127,7 +148,6 @@ function renderTabel(data) {
     });
 }
 
-// Fungsi untuk memperbarui angka di Box Ringkasan
 function updateStats(ov, ws, am) {
     document.getElementById('countOverload').innerText = ov;
     document.getElementById('countWaspada').innerText = ws;
@@ -138,11 +158,9 @@ function updateStats(ov, ws, am) {
 // 4. EVENT LISTENERS
 // ==========================================
 
-// Ganti Nama Staff Berdasarkan Divisi
 document.getElementById('divisiAsal').addEventListener('change', (e) => {
     const selNama = document.getElementById('namaStaff');
     const containerLainnya = document.getElementById('containerCatatan');
-    
     selNama.innerHTML = '<option value="">-- Pilih Nama Staff --</option>';
     
     if (e.target.value) {
@@ -150,12 +168,8 @@ document.getElementById('divisiAsal').addEventListener('change', (e) => {
         const list = daftarNama[e.target.value] || [];
         list.forEach(n => {
             const opt = document.createElement('option');
-            opt.value = n; 
-            opt.innerText = n; 
-            selNama.appendChild(opt);
+            opt.value = n; opt.innerText = n; selNama.appendChild(opt);
         });
-        
-        // Tampilkan input manual jika pilih 'Lainnya'
         containerLainnya.style.display = (e.target.value === 'Lainnya' ? 'block' : 'none');
     } else {
         selNama.disabled = true;
@@ -163,24 +177,27 @@ document.getElementById('divisiAsal').addEventListener('change', (e) => {
     }
 });
 
-// Update Poin Otomatis saat Jabatan dipilih
 document.getElementById('jabatan').addEventListener('change', (e) => {
     const p = poinJabatan[e.target.value] || 3;
     document.getElementById('bobot').value = p;
     document.getElementById('outputBobot').innerText = p + " Poin";
 });
 
-// Update Label Slider Poin (jika digeser manual)
 document.getElementById('bobot').addEventListener('input', (e) => {
     document.getElementById('outputBobot').innerText = e.target.value + " Poin";
 });
 
-// Simpan ke Firebase
+// SIMPAN DENGAN PROTEKSI SAKLAR
 document.getElementById('taskForm').addEventListener('submit', (e) => {
     e.preventDefault();
+
+    if (isLocked) {
+        alert("🔒 Database sedang dikunci oleh Pemimpin Umum.");
+        return;
+    }
+
     const div = document.getElementById('divisiAsal').value;
     const namaS = document.getElementById('namaStaff').value;
-    
     if(!namaS) { alert("Pilih nama staff dulu!"); return; }
 
     const dataBaru = {
@@ -193,7 +210,6 @@ document.getElementById('taskForm').addEventListener('submit', (e) => {
     };
     
     db.ref('plotting').push(dataBaru).then(() => {
-        // Reset form tapi jangan reset filter
         e.target.reset();
         document.getElementById('namaStaff').disabled = true;
         document.getElementById('outputBobot').innerText = "3 Poin";
@@ -201,21 +217,26 @@ document.getElementById('taskForm').addEventListener('submit', (e) => {
     });
 });
 
-// Hapus Item
+// HAPUS DENGAN PROTEKSI SAKLAR
 window.hapusSatu = (id) => {
+    if (isLocked) {
+        alert("🔒 Mode View-Only aktif. Tidak bisa menghapus.");
+        return;
+    }
     if(confirm("Hapus item plotting ini?")) {
         db.ref('plotting/' + id).remove();
     }
 };
 
-// Reset Database
+// RESET DENGAN PROTEKSI SAKLAR
 document.getElementById('btnReset').addEventListener('click', () => {
+    if (isLocked) return; // Tombolnya sendiri sudah disembunyikan di atas
+    
     if(confirm("⚠️ PERINGATAN: Ini akan menghapus SELURUH data plotting staff. Lanjutkan?")) {
         db.ref('plotting').remove();
     }
 });
 
-// Filter, Search, & Sort (Trigger render ulang)
 const triggerRender = () => {
     db.ref('plotting').once('value', s => renderTabel(s.val()));
 };
@@ -225,7 +246,6 @@ document.getElementById('filterDivisi').addEventListener('change', triggerRender
 document.getElementById('filterProker').addEventListener('change', triggerRender);
 document.getElementById('sortStatus').addEventListener('change', triggerRender);
 
-// Dark Mode Toggle
 const btnDark = document.getElementById('darkModeToggle');
 btnDark.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
