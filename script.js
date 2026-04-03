@@ -16,7 +16,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // --- LOGIKA SAKLAR (PROTEKSI) ---, True: terkunci, False: terbuka
-let isLocked = true;
+let isLocked = false;
 
 // Monitor status kunci dari Firebase secara Real-time
 db.ref('app_settings/is_locked').on('value', (snapshot) => {
